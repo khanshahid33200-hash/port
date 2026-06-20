@@ -1,5 +1,6 @@
 import "./globals.css";
 import ClientInit from "@/components/ClientInit";
+import Script from "next/script";
 
 export const metadata = {
   title: "Shahid Khan - Freelance Full Stack Developer",
@@ -17,6 +18,33 @@ export default function RootLayout({ children }) {
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-background-custom text-text-main antialiased overflow-x-hidden" suppressHydrationWarning>
+        <Script id="suppress-abort-errors" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: `
+          window.addEventListener('unhandledrejection', function(event) {
+            var reason = event.reason;
+            if (reason) {
+              var isAbort = reason.name === 'AbortError' || 
+                            reason.message === 'signal is aborted without reason' ||
+                            (reason.message && (
+                              reason.message.indexOf('aborted') !== -1 ||
+                              reason.message.indexOf('AbortError') !== -1 ||
+                              reason.message.indexOf('user aborted') !== -1
+                            ));
+              if (isAbort) {
+                event.stopImmediatePropagation();
+                event.preventDefault();
+                console.log('Suppressed early unhandled abort rejection:', reason.message || reason);
+              }
+            }
+          }, true);
+          window.addEventListener('error', function(event) {
+            var msg = event.message;
+            if (msg && (msg.indexOf('aborted') !== -1 || msg.indexOf('AbortError') !== -1 || msg.indexOf('user aborted') !== -1)) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+              console.log('Suppressed early unhandled abort error:', msg);
+            }
+          }, true);
+        ` }} />
         <ClientInit />
         {children}
       </body>

@@ -133,12 +133,31 @@ export const DEFAULT_BLOGS = [
   }
 ];
 
+// Promise timeout helper
+function timeoutPromise(promise, ms = 800) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Firestore timeout after ${ms}ms`));
+    }, ms);
+    
+    promise
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 // Helper to check if Firestore is configured and connected
 async function tryFirestore(fn, fallback) {
   try {
-    return await fn();
+    return await timeoutPromise(fn(), 800);
   } catch (error) {
-    console.warn("Firestore error, using local fallback:", error);
+    console.warn("Firestore error or timeout, using local fallback:", error);
     return fallback;
   }
 }
